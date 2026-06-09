@@ -2,30 +2,25 @@ package users
 
 import (
 	"main/internal/config"
+	"main/internal/repository/sqlc"
 
-	"github.com/eapache/go-resiliency/retrier"
-	"github.com/go-chi/chi"
-	"google.golang.org/genproto/googleapis/maps/routes/v1"
+	"github.com/go-chi/chi/v5"
 )
 
-
-type Handler struct{
+type Handler struct {
 	config *config.Config
-	store db.store
+	store  *sqlc.Store
 }
 
-
-func NewHandler(cfg *config.Config, store db.store) *Handler{
-   return &Handler{
-	config: cfg,
-	store: store
-	
-   }
+func NewHandler(cfg *config.Config, store *sqlc.Store) *Handler {
+	return &Handler{
+		config: cfg,
+		store:  store,
+	}
 }
 
-func (h *Handler ) Routes() *chi.Mux{
-   router := chi.NewRouter
-    
+func (h *Handler) Routes() *chi.Mux {
+	router := chi.NewRouter()
 
-   return  router
+	return router
 }

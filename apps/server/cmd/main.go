@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"main/internal/config"
-	"main/internal/repository/sqlc"
+	"main/internal/repository/clickhouse"
+	"main/internal/repository/postgres/sqlc"
+
 	"main/internal/routes"
 	"net/http"
 	"os"
@@ -37,14 +39,22 @@ func main() {
 		log.Fatalf("not able to connect postgres %v", err)
 	}
 
+	fmt.Print("conneted to postgres")
+
 	defer pool.Close()
 
 	store := sqlc.NewStore(pool)
 
+	clickhouse_conn, err := clickhouse.New(cfg)
+	if err != nil {
+		 log.Fatal("not able to connect clickhouse: %v" , err)
+	}
+
+
 	// routes logic
 	router := chi.NewRouter()
-	routes.SetupRoutes(router, cfg, store)
-	addr := fmt.Sprintf(":%d", cfg.PORT)
+	routes.SetupRoutes(router, cfg, store, clickhouse_conn)
+	addr := fmt.Sprintf(":%s", cfg.PORT)
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: router,

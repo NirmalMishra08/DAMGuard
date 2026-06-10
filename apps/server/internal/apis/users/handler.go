@@ -2,7 +2,7 @@ package users
 
 import (
 	"main/internal/config"
-	"main/internal/repository/sqlc"
+	"main/internal/repository/postgres/sqlc"
 
 	"github.com/go-chi/chi/v5"
 )

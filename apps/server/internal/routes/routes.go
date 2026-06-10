@@ -3,15 +3,16 @@ package routes
 import (
 	"main/internal/apis/users"
 	"main/internal/config"
-	"main/internal/repository/sqlc"
+	"main/internal/repository/postgres/sqlc"
 	"net/http"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 )
 
-func SetupRoutes(router *chi.Mux, cfg *config.Config, store *sqlc.Store) {
+func SetupRoutes(router *chi.Mux, cfg *config.Config, store *sqlc.Store, clic_conn clickhouse.Conn) {
 	// Apply middleware globally
 	router.Use(
 		render.SetContentType(render.ContentTypeJSON),

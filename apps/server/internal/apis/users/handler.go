@@ -2,6 +2,7 @@ package users
 
 import (
 	"main/internal/config"
+	middlewares "main/internal/middleware"
 	"main/internal/repository/postgres/sqlc"
 
 	"github.com/go-chi/chi/v5"
@@ -21,6 +22,8 @@ func NewHandler(cfg *config.Config, store *sqlc.Store) *Handler {
 
 func (h *Handler) Routes() *chi.Mux {
 	router := chi.NewRouter()
+
+	router.Use(middlewares.TokenMiddleware(h.store))
 
 	return router
 }

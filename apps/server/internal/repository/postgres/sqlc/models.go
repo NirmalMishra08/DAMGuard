@@ -5,16 +5,98 @@
 package sqlc
 
 import (
-	"time"
+	"database/sql"
+	"database/sql/driver"
+	"fmt"
 
 	"github.com/google/uuid"
 )
 
+type UserRole string
+
+const (
+	UserRoleUSER    UserRole = "USER"
+	UserRoleADMIN   UserRole = "ADMIN"
+)
+
+func (e *UserRole) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserRole(s)
+	case string:
+		*e = UserRole(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserRole: %T", src)
+	}
+	return nil
+}
+
+type NullUserRole struct {
+	UserRole UserRole
+	Valid    bool // Valid is true if UserRole is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserRole) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserRole, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserRole.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserRole) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserRole), nil
+}
+
+type Alert struct {
+	ID          uuid.UUID
+	DatabaseID  uuid.NullUUID
+	Severity    sql.NullString
+	Title       sql.NullString
+	Description sql.NullString
+	Status      sql.NullString
+	CreatedAt   sql.NullTime
+}
+
+type AlertHistory struct {
+	ID          uuid.UUID
+	AlertID     uuid.NullUUID
+	Action      sql.NullString
+	PerformedBy uuid.NullUUID
+	CreatedAt   sql.NullTime
+}
+
+type DatabaseSource struct {
+	ID                uuid.UUID
+	Name              string
+	Type              string
+	Host              string
+	Port              int32
+	DatabaseName      sql.NullString
+	Username          sql.NullString
+	PasswordEncrypted sql.NullString
+	Enabled           sql.NullBool
+	CreatedAt         sql.NullTime
+}
+
+type Setting struct {
+	Key   string
+	Value sql.NullString
+}
+
 type User struct {
 	ID           uuid.UUID
-	Name         string
+	Phone        sql.NullString
 	Email        string
-	PasswordHash string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	Fullname     string
+	Provider     interface{}
+	PasswordHash sql.NullString
+	Role         UserRole
+	UpdatedAt    sql.NullTime
 }

@@ -1,8 +1,8 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "./internal/repository/queries/postgres/*.sql"
-    schema: "./internal/repository/schema/postgres/*.sql"
+    queries: "./internal/repository/postgres/queries/*.sql"
+    schema: "./internal/repository/postgres/schema/*.sql"
     gen:
       go:
         package: "sqlc"

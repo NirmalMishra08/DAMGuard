@@ -1,0 +1,5 @@
+./client.go
+./logs.go
+./metrics.go
+./tables.go
+./types.go

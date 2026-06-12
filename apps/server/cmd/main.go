@@ -47,9 +47,8 @@ func main() {
 
 	clickhouse_conn, err := clickhouse.New(cfg)
 	if err != nil {
-		 log.Fatal("not able to connect clickhouse: %v" , err)
+		log.Fatalf("not able to connect clickhouse: %v", err)
 	}
-
 
 	// routes logic
 	router := chi.NewRouter()

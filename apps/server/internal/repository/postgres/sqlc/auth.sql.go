@@ -7,12 +7,63 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
+const findOrCreateUser = `-- name: FindOrCreateUser :one
+INSERT INTO users (email, provider, phone, fullname, password_hash, created_at)
+VALUES ($1, $2, $3, $4, $5, NOW())
+ON CONFLICT (email)
+DO UPDATE SET
+    phone = EXCLUDED.phone,
+    provider = EXCLUDED.provider,
+    updated_at = NOW()
+RETURNING id, email, fullname, password_hash, phone, role, provider
+`
+
+type FindOrCreateUserParams struct {
+	Email        string
+	Provider     interface{}
+	Phone        sql.NullString
+	Fullname     string
+	PasswordHash sql.NullString
+}
+
+type FindOrCreateUserRow struct {
+	ID           uuid.UUID
+	Email        string
+	Fullname     string
+	PasswordHash sql.NullString
+	Phone        sql.NullString
+	Role         UserRole
+	Provider     interface{}
+}
+
+func (q *Queries) FindOrCreateUser(ctx context.Context, arg FindOrCreateUserParams) (FindOrCreateUserRow, error) {
+	row := q.db.QueryRowContext(ctx, findOrCreateUser,
+		arg.Email,
+		arg.Provider,
+		arg.Phone,
+		arg.Fullname,
+		arg.PasswordHash,
+	)
+	var i FindOrCreateUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Fullname,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.Provider,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, password_hash, created_at, updated_at FROM users
+SELECT id, phone, email, fullname, provider, password_hash, role, updated_at FROM users
 WHERE id = $1
 `
 
@@ -21,10 +72,12 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.Phone,
 		&i.Email,
+		&i.Fullname,
+		&i.Provider,
 		&i.PasswordHash,
-		&i.CreatedAt,
+		&i.Role,
 		&i.UpdatedAt,
 	)
 	return i, err

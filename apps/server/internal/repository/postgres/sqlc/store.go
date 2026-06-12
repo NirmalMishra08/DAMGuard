@@ -11,7 +11,7 @@ type Store struct {
 	db    *pgxpool.Pool
 	sqlDB *sql.DB
 
-	queries *Queries
+	Queries *Queries
 }
 
 func NewStore(pool *pgxpool.Pool) *Store {
@@ -20,6 +20,6 @@ func NewStore(pool *pgxpool.Pool) *Store {
 	return &Store{
 		db:      pool,
 		sqlDB:   sqlDB,
-		queries: New(sqlDB),
+		Queries: New(sqlDB),
 	}
 }

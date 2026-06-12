@@ -2,22 +2,24 @@ package middlewares
 
 import (
 	"context"
+	"main/internal/repository/postgres/sqlc"
+	"main/internal/utils"
 )
 
 // CheckUserRole - Core reusable authorization function
-func HasRole(store db.Store, ctx context.Context, requiredRole db.UserRole) error {
+func HasRole(store *sqlc.Store, ctx context.Context, requiredRole sqlc.UserRole) error {
 	payload, err := GetFirebasePayloadFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
-	role, err := store.GetUserRole(ctx, payload.UserId)
+	user, err := store.Queries.GetUser(ctx, payload.UserId)
 	if err != nil {
 		return err
 	}
 
-	if role != requiredRole {
-		return util.ErrUnauthorized
+	if user.Role != requiredRole {
+		return utils.ErrUnauthorized
 	}
 
 	return nil

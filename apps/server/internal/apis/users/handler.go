@@ -23,7 +23,12 @@ func NewHandler(cfg *config.Config, store *sqlc.Store) *Handler {
 func (h *Handler) Routes() *chi.Mux {
 	router := chi.NewRouter()
 
-	router.Use(middlewares.TokenMiddleware(h.store))
+	router.Post("/login", h.AuthHandler)
+
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.TokenMiddleware(h.store))
+
+	})
 
 	return router
 }

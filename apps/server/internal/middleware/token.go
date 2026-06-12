@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"main/internal/firebase"
 	"main/internal/repository/postgres/sqlc"
@@ -11,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/sirupsen/logrus" // Ensure you have a logging package like logrus or use your logger
 )
 
@@ -61,12 +61,12 @@ func TokenMiddleware(store *sqlc.Store) func(http.Handler) http.Handler {
 
 			logrus.Infof("Firebase token verified. Email: %s, UserID: %s", fbPayload.Email, fbPayload.UserId)
 
-			user, err := store.FindOrCreateUser(r.Context(), sqlc.FindOrCreateUserParams{
+			user, err := store.Queries.FindOrCreateUser(r.Context(), sqlc.FindOrCreateUserParams{
 				Email:        fbPayload.Email,
-				Fullname:     fbPayload.Fullname,                    // Use the correct type for Fullname
-				PasswordHash: pgtype.Text{String: "", Valid: false}, // Password is not used here
-				Phone:        pgtype.Text{String: fbPayload.Phone, Valid: fbPayload.Phone != ""},
-				Provider:     sqlc.Provider(fbPayload.Provider), // or extract from token
+				Fullname:     fbPayload.Fullname,                       // Use the correct type for Fullname
+				PasswordHash: sql.NullString{String: "", Valid: false}, // Password is not used here
+				Phone:        sql.NullString{String: fbPayload.Phone, Valid: fbPayload.Phone != ""},
+				Provider:     fbPayload.Provider, // or extract from token
 			})
 			if err != nil {
 				utils.ErrJson(w, err)

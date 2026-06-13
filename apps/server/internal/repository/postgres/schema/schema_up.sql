@@ -1,6 +1,19 @@
 
 
-CREATE TYPE user_role AS ENUM ('USER', 'TRAINER', 'ADMIN');
+CREATE TYPE user_role AS ENUM ('USER', 'ADMIN');
+
+CREATE TYPE alert_severity AS ENUM (
+    'LOW',
+    'MEDIUM',
+    'HIGH',
+    'CRITICAL'
+);
+
+CREATE TYPE alert_status AS ENUM (
+    'OPEN',
+    'ACKNOWLEDGED',
+    'RESOLVED'
+);
 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -24,18 +37,21 @@ CREATE TABLE database_sources (
     username VARCHAR(255),
     password_encrypted TEXT,
     enabled BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPZ DEFAULT NOW(),
+    updated_at TIMESTAMPZ DEFAULT NOW(),
+    deleted_at TIMESTAMPZ;
 );
 
 
 CREATE TABLE alerts (
     id UUID PRIMARY KEY,
     database_id UUID REFERENCES database_sources(id),
-    severity VARCHAR(20),
+    severity alert_severity,
+    status alert_status DEFAULT 'OPEN'
     title VARCHAR(255),
     description TEXT,
-    status VARCHAR(20) DEFAULT 'open',
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMPZ DEFAULT NOW()
 );
 
 CREATE TABLE alert_history (
@@ -43,7 +59,7 @@ CREATE TABLE alert_history (
     alert_id UUID,
     action VARCHAR(50),
     performed_by UUID,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMPZ DEFAULT NOW()
 );
 
 CREATE TABLE settings (

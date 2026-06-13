@@ -7,20 +7,28 @@ import (
 )
 
 func (r *Repository) CreateTables(conn ch.Conn) error {
+	ctx := context.Background()
 
-	query := `
-	CREATE TABLE IF NOT EXISTS api_logs
+	// 2. Create query_events table
+	queryEventsQuery := `
+	CREATE TABLE IF NOT EXISTS query_events
 	(
-		timestamp DateTime64(3),
-		user_id UInt64,
-		method String,
-		path String,
-		status UInt16,
-		duration_ms UInt32
+		event_id UUID,
+		timestamp DateTime,
+		database_id String,
+		database_name String,
+		database_type String,
+		username String,
+		query String,
+		query_type String,
+		client_ip String
 	)
 	ENGINE = MergeTree()
-	ORDER BY (timestamp, user_id)
+	ORDER BY timestamp
 	`
+	if err := r.conn.Exec(ctx, queryEventsQuery); err != nil {
+		return err
+	}
 
-	return r.conn.Exec(context.Background(), query)
+	return nil
 }

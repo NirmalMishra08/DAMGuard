@@ -2,34 +2,54 @@ package clickhouse
 
 import (
 	"context"
+	"time"
 
 	ch "github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/google/uuid"
 )
 
-func(r *Repository) InsertAPILog(
+type AuditEvent struct {
+	EventID      uuid.UUID
+	Timestamp    time.Time
+	DatabaseID   string
+	DatabaseName string
+	DatabaseType string
+	Username     string
+	Query        string
+	QueryType    string
+	ClientIP     string
+}
+
+func (r *Repository) InsertAuditEvent(
 	conn ch.Conn,
-	log APILog,
+	event AuditEvent,
 ) error {
 
-	return r.conn.Exec(
+	return conn.Exec(
 		context.Background(),
 		`
-		INSERT INTO api_logs
+		INSERT INTO query_events
 		(
+			event_id,
 			timestamp,
-			user_id,
-			method,
-			path,
-			status,
-			duration_ms
+			database_id,
+			database_name,
+			database_type,
+			username,
+			query,
+			query_type,
+			client_ip
 		)
-		VALUES (?, ?, ?, ?, ?, ?)
+		VALUES (toUUID(?), ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
-		log.Timestamp,
-		log.UserID,
-		log.Method,
-		log.Path,
-		log.Status,
-		log.DurationMS,
+		event.EventID,
+		event.Timestamp,
+		event.DatabaseID,
+		event.DatabaseName,
+		event.DatabaseType,
+		event.Username,
+		event.Query,
+		event.QueryType,
+		event.ClientIP,
 	)
 }

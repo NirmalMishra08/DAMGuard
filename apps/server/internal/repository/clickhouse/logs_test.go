@@ -72,7 +72,7 @@ func TestInsertAuditEvent_UsesProvidedConnection(t *testing.T) {
 		ClientIP:     "127.0.0.1",
 	}
 
-	if err := repo.InsertAuditEvent(passedConn, event); err != nil {
+	if err := repo.InsertQueryEvent(passedConn, event); err != nil {
 		t.Fatalf("InsertAuditEvent returned error: %v", err)
 	}
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	ch "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 )
 
@@ -20,14 +19,10 @@ type AuditEvent struct {
 	ClientIP     string
 }
 
-func (r *Repository) InsertAuditEvent(
-	conn ch.Conn,
-	event AuditEvent,
-) error {
+func (r *Repository) InsertQueryEvent(event AuditEvent) error {
+	ctx := context.Background()
 
-	return conn.Exec(
-		context.Background(),
-		`
+	batch, err := r.conn.PrepareBatch(ctx, `
 		INSERT INTO query_events
 		(
 			event_id,
@@ -40,8 +35,12 @@ func (r *Repository) InsertAuditEvent(
 			query_type,
 			client_ip
 		)
-		VALUES (toUUID(?), ?, ?, ?, ?, ?, ?, ?, ?)
-		`,
+	`)
+	if err != nil {
+		return err
+	}
+
+	if err := batch.Append(
 		event.EventID,
 		event.Timestamp,
 		event.DatabaseID,
@@ -51,5 +50,9 @@ func (r *Repository) InsertAuditEvent(
 		event.Query,
 		event.QueryType,
 		event.ClientIP,
-	)
+	); err != nil {
+		return err
+	}
+
+	return batch.Send()
 }

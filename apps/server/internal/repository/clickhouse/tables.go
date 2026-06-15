@@ -25,10 +25,12 @@ func (r *Repository) CreateTables(conn ch.Conn) error {
 	)
 	ENGINE = MergeTree()
 	ORDER BY timestamp
-	`
+	` 
 	if err := r.conn.Exec(ctx, queryEventsQuery); err != nil {
 		return err
 	}
 
 	return nil
 }
+
+

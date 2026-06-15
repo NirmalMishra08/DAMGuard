@@ -15,6 +15,12 @@ CREATE TYPE alert_status AS ENUM (
     'RESOLVED'
 );
 
+CREATE TYPE provider as ENUM (
+    'PASSWORD',
+    'GOOGLE',
+    'APPLE'
+);
+
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     phone TEXT,

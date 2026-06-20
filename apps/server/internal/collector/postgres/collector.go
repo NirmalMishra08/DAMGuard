@@ -16,22 +16,35 @@ func NewCollector(
 	clickhouseRepo *clickhouse.Repository,
 ) *Collector {
 	return &Collector{
-		clickHouseRepo : clickhouseRepo,
+		clickHouseRepo: clickhouseRepo,
 	}
 }
 
-
-
 func (c *Collector) Start(ctx context.Context) error {
-  scanner, err := ReadDockerLogs()
-  if err != nil {
-	return  err
-  }
+	scanner, err := ReadDockerLogs()
+	if err != nil {
+		return err
+	}
 
-  for scanner.Scan(){
-	line := scanner.Text()
-	
-  }
+	for scanner.Scan() {
+		line := scanner.Text()
+		query, ok := ExtractQuery(line)
+		if !ok {
+			continue
+		}
+
+		event := BuildAuditEvents(query)
+		if event == nil {
+			continue
+		}
+
+		if err := c.clickHouseRepo.InsertQueryEvent(*event); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 func ReadDockerLogs() (*bufio.Scanner, error) {
